@@ -1,42 +1,98 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Race Monitoring Dashboard</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Race Telemetry Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/leaflet.css" />
+    <style>
+        .map-container { height: 320px; z-index: 10; }
+    </style>
 </head>
-<body>
-    <header>
-        <h1>Race Telemetry Monitoring</h1>
-        <p>Status: <span id="connection-status">Disconnected</span></p>
+<body class="bg-slate-950 text-slate-100 font-sans min-h-screen pb-10">
+
+    <header class="border-b border-slate-800 bg-slate-900/50 backdrop-blur sticky top-0 z-50 px-6 py-4 flex justify-between items-center shadow-md">
+        <div class="flex items-center space-x-3">
+            <div class="w-4 h-4 rounded-full bg-emerald-500 animate-pulse" id="connection-indicator"></div>
+            <h1 class="text-xl font-bold tracking-wider uppercase">Race Telemetry Dashboard</h1>
+        </div>
+        <div class="text-sm font-medium">
+            Status: <span id="connection-status" class="text-red-400 font-semibold">Terputus</span>
+        </div>
     </header>
 
-    <div class="dashboard-grid">
-        <div class="card" id="drag-meter">
-            <h2>Drag Meter (0-201m / 0-402m)</h2>
-            <div class="metric">Distance: <span id="drag-distance">0</span> m</div>
-            <div class="metric">Speed: <span id="drag-speed">0</span> km/h</div>
-            <div class="metric">Time: <span id="drag-time">0.00</span> s</div>
+    <main class="max-w-7xl mx-auto px-6 py-8 grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col justify-between">
+            <div>
+                <div class="flex items-center space-x-2 mb-4">
+                    <span class="p-2 bg-rose-500/10 text-rose-400 rounded-lg">🏁</span>
+                    <h2 class="text-lg font-semibold tracking-wide">Drag Meter (201m / 402m)</h2>
+                </div>
+                <div class="space-y-4">
+                    <div class="bg-slate-950 p-4 rounded-xl border border-slate-800/50">
+                        <span class="text-xs text-slate-400 uppercase tracking-wider block">Jarak Tempuh</span>
+                        <span class="text-4xl font-extrabold text-white"><span id="drag-distance">0</span> <span class="text-sm font-normal text-slate-400">m</span></span>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="bg-slate-950 p-3 rounded-xl border border-slate-800/50">
+                            <span class="text-xs text-slate-400 uppercase tracking-wider block">Kecepatan</span>
+                            <span class="text-2xl font-bold text-cyan-400"><span id="drag-speed">0</span> <span class="text-xs font-normal">km/j</span></span>
+                        </div>
+                        <div class="bg-slate-950 p-3 rounded-xl border border-slate-800/50">
+                            <span class="text-xs text-slate-400 uppercase tracking-wider block">Waktu</span>
+                            <span class="text-2xl font-bold text-amber-400"><span id="drag-time">0.00</span> <span class="text-xs font-normal">detik</span></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-6 text-xs text-slate-500 text-center">Merekam akselerasi real-time secara presisi</div>
         </div>
 
-        <div class="card" id="lap-timer">
-            <h2>Lap Timer</h2>
-            <div class="metric">Current Lap: <span id="current-lap">1</span></div>
-            <div class="metric">Lap Time: <span id="lap-current-time">00:00.00</span></div>
-            <h3>Best Laps</h3>
-            <ul id="lap-list">
-                <li>Belum ada data lap</li>
-            </ul>
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col justify-between">
+            <div>
+                <div class="flex items-center space-x-2 mb-4">
+                    <span class="p-2 bg-indigo-500/10 text-indigo-400 rounded-lg">⏱️</span>
+                    <h2 class="text-lg font-semibold tracking-wide">Lap Timer</h2>
+                </div>
+                
+                <div class="bg-slate-950 p-4 rounded-xl border border-slate-800/50 mb-6 text-center">
+                    <span class="text-xs text-slate-400 uppercase tracking-wider block mb-1">Putaran Saat Ini</span>
+                    <div class="text-3xl font-black text-indigo-400 mb-1">LAP <span id="current-lap">1</span></div>
+                    <div class="text-2xl font-mono text-white tracking-wider" id="lap-current-time">00:00.00</div>
+                </div>
+
+                <div>
+                    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Catatan Putaran Terbaik</h3>
+                    <ul id="lap-list" class="space-y-2 max-h-36 overflow-y-auto pr-1">
+                        <li class="text-sm text-slate-500 italic py-2 text-center bg-slate-950/50 rounded-lg border border-dashed border-slate-800">Belum ada data lap yang tercatat</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="mt-6 text-xs text-slate-500 text-center">Pencatatan waktu putaran sirkuit secara otomatis</div>
         </div>
 
-        <div class="card" id="maps-card">
-            <h2>Live Tracking Map</h2>
-            <div id="map" style="height: 300px; border-radius: 8px;"></div>
-            <div class="metric">Lat, Lng: <span id="live-coords">0, 0</span></div>
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col justify-between">
+            <div>
+                <div class="flex items-center space-x-2 mb-4">
+                    <span class="p-2 bg-emerald-500/10 text-emerald-400 rounded-lg">🗺️</span>
+                    <h2 class="text-lg font-semibold tracking-wide">Peta Pelacakan Langsung</h2>
+                </div>
+                
+                <div class="overflow-hidden rounded-xl border border-slate-800 mb-4">
+                    <div id="map" class="map-container"></div>
+                </div>
+                
+                <div class="flex items-center justify-between bg-slate-950 px-4 py-3 rounded-xl border border-slate-800/50 font-mono text-xs text-slate-300">
+                    <div><span class="text-slate-500">LAT:</span> <span id="lat-val">0.00000</span></div>
+                    <div><span class="text-slate-500">LNG:</span> <span id="lng-val">0.00000</span></div>
+                </div>
+            </div>
+            <div class="mt-6 text-xs text-slate-500 text-center">Pelacakan posisi kendaraan secara live GPS</div>
         </div>
-    </div>
+
+    </main>
 
     <script src="https://unpkg.com/leaflet@1.9.4/leaflet.js"></script>
     <script src="app.js"></script>
