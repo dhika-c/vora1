@@ -1,43 +1,48 @@
-const ws = new WebSocket('ws://localhost:3000');
+const ws = new WebSocket('ws://localhost:3000'); // Sesuaikan dengan URL server backend Anda jika online
 
-// Elemen DOM
-const statusSpan = document.getElementById('connection-status');
+// Elemen DOM yang baru
+const connectionStatus = document.getElementById('connection-status');
+const connectionIndicator = document.getElementById('connection-indicator');
 const dragDistance = document.getElementById('drag-distance');
 const dragSpeed = document.getElementById('drag-speed');
 const dragTime = document.getElementById('drag-time');
 const currentLapSpan = document.getElementById('current-lap');
 const lapCurrentTime = document.getElementById('lap-current-time');
 const lapList = document.getElementById('lap-list');
-const liveCoords = document.getElementById('live-coords');
+const latVal = document.getElementById('lat-val');
+const lngVal = document.getElementById('lng-val');
 
-// Inisialisasi Peta menggunakan Leaflet.js
-const map = L.map('map').setView([-6.2088, 106.8456], 15); // Koordinat contoh (Jakarta)
+// Inisialisasi Peta Leaflet
+const map = L.map('map').setView([-6.2088, 106.8456], 15); 
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; OpenStreetMap contributors'
 }).addTo(map);
+
 const marker = L.marker([-6.2088, 106.8456]).addTo(map);
 
 ws.onopen = () => {
-    statusSpan.innerText = 'Connected';
-    statusSpan.style.color = 'green';
+    connectionStatus.innerText = 'Tersambung';
+    connectionStatus.className = 'text-emerald-400 font-semibold';
+    connectionIndicator.className = 'w-4 h-4 rounded-full bg-emerald-500 animate-pulse';
 };
 
 ws.onclose = () => {
-    statusSpan.innerText = 'Disconnected';
-    statusSpan.style.color = 'red';
+    connectionStatus.innerText = 'Terputus';
+    connectionStatus.className = 'text-red-400 font-semibold';
+    connectionIndicator.className = 'w-4 h-4 rounded-full bg-red-500';
 };
 
 ws.onmessage = (event) => {
     const data = JSON.parse(event.data);
 
-    // Pembaruan Mode Drag Meter
+    // Mode Drag Meter
     if (data.type === 'drag') {
         dragDistance.innerText = data.distance;
         dragSpeed.innerText = data.speed;
         dragTime.innerText = data.time;
     }
 
-    // Pembaruan Mode Lap Timer
+    // Mode Lap Timer
     if (data.type === 'lap') {
         currentLapSpan.innerText = data.lapNumber;
         lapCurrentTime.innerText = data.lapTime;
@@ -47,17 +52,20 @@ ws.onmessage = (event) => {
                 lapList.innerHTML = '';
             }
             const li = document.createElement('li');
-            li.innerText = `Lap ${data.lapNumber}: ${data.lapTime}`;
+            li.className = "flex justify-between bg-slate-950 px-3 py-2 rounded-lg font-mono text-sm border border-slate-800";
+            li.innerHTML = `<span>LAP ${data.lapNumber}</span> <span class="text-emerald-400 font-bold">${data.lapTime}</span>`;
             lapList.appendChild(li);
         }
     }
 
-    // Pembaruan Mode Maps & GPS Tracking
+    // Mode Maps & GPS
     if (data.type === 'gps') {
         const lat = data.latitude;
         const lng = data.longitude;
         
-        liveCoords.innerText = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+        latVal.innerText = lat.toFixed(5);
+        lngVal.innerText = lng.toFixed(5);
+        
         marker.setLatLng([lat, lng]);
         map.panTo([lat, lng]);
     }
