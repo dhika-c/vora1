@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Race Monitoring Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/leaflet.css" />
+</head>
+<body>
+    <header>
+        <h1>Race Telemetry Monitoring</h1>
+        <p>Status: <span id="connection-status">Disconnected</span></p>
+    </header>
+
+    <div class="dashboard-grid">
+        <div class="card" id="drag-meter">
+            <h2>Drag Meter (0-201m / 0-402m)</h2>
+            <div class="metric">Distance: <span id="drag-distance">0</span> m</div>
+            <div class="metric">Speed: <span id="drag-speed">0</span> km/h</div>
+            <div class="metric">Time: <span id="drag-time">0.00</span> s</div>
+        </div>
+
+        <div class="card" id="lap-timer">
+            <h2>Lap Timer</h2>
+            <div class="metric">Current Lap: <span id="current-lap">1</span></div>
+            <div class="metric">Lap Time: <span id="lap-current-time">00:00.00</span></div>
+            <h3>Best Laps</h3>
+            <ul id="lap-list">
+                <li>Belum ada data lap</li>
+            </ul>
+        </div>
+
+        <div class="card" id="maps-card">
+            <h2>Live Tracking Map</h2>
+            <div id="map" style="height: 300px; border-radius: 8px;"></div>
+            <div class="metric">Lat, Lng: <span id="live-coords">0, 0</span></div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/leaflet.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
